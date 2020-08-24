@@ -7,6 +7,17 @@
 
 #include <JuceHeader.h>
 
+template <typename T>
+T clip(T value, T min, T max) {
+  if (value > max) {
+    return max;
+  } else if (value < min) {
+    return min;
+  } else {
+    return value;
+  }
+}
+
 class Graph : public juce::Component {
  public:
   void resized() override {
@@ -26,9 +37,9 @@ class Graph : public juce::Component {
     int i = 0;
     for (auto it = ringBuffer.begin(); it != ringBuffer.end(); it++, i++) {
       auto lufs = *it;
-      double r = std::max(0.0, (lufs - minLUFS) / (maxLUFS - minLUFS));
+      double r = clip((lufs - minLUFS) / (maxLUFS - minLUFS), 0.0, 1.0);
       g.setColour(foregroundColor);
-      g.fillRect(columnWidth * i, int(columnHeight * (1 - r)), columnWidth, getHeight());
+      g.fillRect(columnWidth * i, int(columnHeight * (1 - r)), columnWidth, columnHeight);
     }
   }
 
@@ -38,7 +49,7 @@ class Graph : public juce::Component {
   }
 
   double maxLUFS = 10, minLUFS = -50;
-  int columnWidth = 2;
+  int columnWidth = 1;
   Colour backgroundColor = Colour(0), foregroundColor = Colour(0xff4488ccu);
   std::list<double> ringBuffer = std::list<double>(50, minLUFS);
 };
@@ -54,6 +65,10 @@ class MainComponent : public juce::AudioProcessorEditor {
     ss << "LUFS " << std::setprecision(3) << lufs << "dB";
     label.setText(ss.str(), dontSendNotification);
     graph.addValue(lufs);
+  }
+  void resized() override {
+    graph.setBounds(getLocalBounds());
+    label.setBounds(getLocalBounds());
   }
  protected:
 

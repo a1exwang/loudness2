@@ -146,11 +146,11 @@ void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
     auto sums = std::get<1>(sr);
 
     for (int i = 0; ; i++) {
-      if (i >= n) {
-        semiResultsNew.emplace_back(lastCount + n, sums);
-        break;
-      } else if (lastCount + i >= measurementSize) {
+      if (lastCount + i >= measurementSize) {
         yield_lufs(sums, i + globalOffset);
+        break;
+      } else if (i >= n) {
+        semiResultsNew.emplace_back(lastCount + n, sums);
         break;
       } else {
         for (int c = 0; c < buffer.getNumChannels(); c++) {
@@ -164,13 +164,13 @@ void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
   for (auto offset = newMeasurementStart; offset < n; offset += strideSize) {
     std::vector<double> sums(buffer.getNumChannels(), 0);
     for (int i = 0; ; i++) {
-      if (offset + i >= n) {
-        // semi
-        semiResultsNew.emplace_back(i, sums);
-        break;
-      } else if (i >= measurementSize) {
+      if (i >= measurementSize) {
         // done
         yield_lufs(sums, i + offset);
+        break;
+      } else if (offset + i >= n) {
+        // semi
+        semiResultsNew.emplace_back(i, sums);
         break;
       } else {
         for (int c = 0; c < buffer.getNumChannels(); c++) {

@@ -31,12 +31,15 @@ MainComponent::MainComponent(MainAudioProcessor& p)
   graph.setBounds(getLocalBounds());
 
   addAndMakeVisible(label);
-  label.setBounds(0, 0, getWidth(), getHeight());
+  label.setBounds(getLocalBounds());
   label.setFont(Font(64, Font::bold));
 
   timer = std::make_unique<MainTimer>(this);
-  timer->startTimer(100);
+  timer->startTimer(1000/60);
 }
 
-MainComponent::~MainComponent() = default;
+MainComponent::~MainComponent() {
+  timer->stopTimer();
+  timer.reset();
+}
 
