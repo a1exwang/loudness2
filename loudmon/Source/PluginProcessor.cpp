@@ -63,9 +63,7 @@ void MainAudioProcessor::changeProgramName (int, const String&) { }
 
 //==============================================================================
 void MainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock) {
-  auto editor = dynamic_cast<MainComponent*>(getActiveEditor());
-  auto input_channels = getTotalNumInputChannels();
-  auto output_channels = getTotalNumOutputChannels();
+  lufsMeter.prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
 }
 
 void MainAudioProcessor::releaseResources()
@@ -99,21 +97,11 @@ bool MainAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 #endif
 
 void MainAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages) {
-  // calculate RMS
-  double sum = 0;
-  for (int i = 0; i < buffer.getNumChannels(); i++) {
-    auto channelData = buffer.getArrayOfReadPointers()[i];
-    for (int j = 0; j < buffer.getNumSamples(); j++) {
-      sum += channelData[j] * channelData[j];
-    }
-  }
-  auto totalSamples = buffer.getNumSamples() * buffer.getNumChannels();
-  if (totalSamples != 0) {
-    sum /= totalSamples;
-  }
-  auto rms = sqrt(sum);
-  std::cout << "RMS " << rms << std::endl;
-  // we don't generate sound
+  AudioBuffer<float> b2 = buffer;
+  MidiBuffer m2 = midiMessages;
+
+  lufsMeter.processBlock(buffer);
+  // FIXME: disable output currently for debug
   buffer.clear();
 }
 
@@ -135,4 +123,81 @@ void MainAudioProcessor::setStateInformation (const void*, int) {
 
 AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
     return new MainAudioProcessor();
+}
+
+
+void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
+
+  prefilter.processBlock(buffer);
+  rlb.processBlock(buffer);
+
+  std::vector<std::tuple<size_t, std::vector<double>>> semiResultsNew;
+  auto n = buffer.getNumSamples();
+  size_t newMeasurementStart;
+  if (semiResults.empty()) {
+    // global first
+    newMeasurementStart = 0;
+  } else {
+    assert(strideSize > std::get<0>(semiResults.back()));
+    newMeasurementStart = strideSize - std::get<0>(semiResults.back());
+  }
+  for (auto &sr : semiResults) {
+    auto lastCount = std::get<0>(sr);
+    auto sums = std::get<1>(sr);
+
+    for (int i = 0; ; i++) {
+      if (i >= n) {
+        semiResultsNew.emplace_back(lastCount + n, sums);
+        break;
+      } else if (lastCount + i >= measurementSize) {
+        yield_lufs(sums, i + globalOffset);
+        break;
+      } else {
+        for (int c = 0; c < buffer.getNumChannels(); c++) {
+          auto value = buffer.getSample(c, i);
+          sums[c] = value * value;
+        }
+      }
+    }
+  }
+
+  for (auto offset = newMeasurementStart; offset < n; offset += strideSize) {
+    std::vector<double> sums(buffer.getNumChannels(), 0);
+    for (int i = 0; ; i++) {
+      if (offset + i >= n) {
+        // semi
+        semiResultsNew.emplace_back(i, sums);
+        break;
+      } else if (i >= measurementSize) {
+        // done
+        yield_lufs(sums, i + offset);
+        break;
+      } else {
+        for (int c = 0; c < buffer.getNumChannels(); c++) {
+          auto value = buffer.getSample(c, offset + i);
+          sums[c] += value * value;
+        }
+      }
+    }
+  }
+  semiResults = semiResultsNew;
+  globalOffset += buffer.getNumSamples();
+}
+void LUFSMeter::yield_lufs(const std::vector<double> &sums, size_t offset) {
+  double lufs = -0.691 + 10 * log10(std::accumulate(sums.begin(), sums.end(), 0.0));
+  std::cout << "LUFS@" << offset << " = " << std::setprecision(3) << lufs << "dB" << std::endl;
+  lufs_ = lufs;
+}
+void LUFSMeter::prepareToPlay(double sampleRate, uint32_t maximumBlockSize, uint32_t numChannels) {
+
+  // calculate paramters for current sample rate
+  // we cannot resize the list since the filter type does not have copy constructor
+  prefilter.prepareToPlay(sampleRate, numChannels);
+  rlb.prepareToPlay(sampleRate, numChannels);
+  this->sampleRate = sampleRate;
+  // make sure strideSize is factor of measurementSize
+  measurementSize = static_cast<int>(0.4 * sampleRate) / 4 * 4;
+  strideSize = measurementSize / 4;
+  globalOffset = 0;
+  semiResults.clear();
 }

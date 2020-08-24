@@ -12,6 +12,12 @@
       <FILE id="mFhS5R" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="Mmr7AB" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="Mmr7AD" name="BackgroundProcessor.cpp" compile="1" resource="0"
+            file="Source/BackgroundProcessor.cpp"/>
+      <FILE id="Mmr7AC" name="BackgroundProcessor.h" compile="0" resource="0" file="Source/BackgroundProcessor.h"/>
+      <FILE id="Mmr7AE" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
+            file="Source/SecondOrderIIRFilter.cpp"/>
+      <FILE id="Mmr7AF" name="SecondOrderIIRFilter.h" compile="0" resource="0" file="Source/SecondOrderIIRFilter.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
