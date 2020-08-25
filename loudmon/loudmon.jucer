@@ -18,6 +18,9 @@
       <FILE id="Mmr7AE" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
             file="Source/SecondOrderIIRFilter.cpp"/>
       <FILE id="Mmr7AF" name="SecondOrderIIRFilter.h" compile="0" resource="0" file="Source/SecondOrderIIRFilter.h"/>
+      <FILE id="Mmr7AF" name="Graph.cpp" compile="1" resource="0"
+            file="Source/Graph.cpp"/>
+      <FILE id="Mmr7AG" name="Graph.h" compile="0" resource="0" file="Source/Graph.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

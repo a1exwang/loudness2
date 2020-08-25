@@ -6,53 +6,7 @@
 #include <utility>
 
 #include <JuceHeader.h>
-
-template <typename T>
-T clip(T value, T min, T max) {
-  if (value > max) {
-    return max;
-  } else if (value < min) {
-    return min;
-  } else {
-    return value;
-  }
-}
-
-class Graph : public juce::Component {
- public:
-  void resized() override {
-    int newSize = getWidth() / columnWidth;
-    // make ringBuffer.size() == newSize, resize from front
-    while (ringBuffer.size() > newSize) {
-      ringBuffer.pop_front();
-    }
-    while (ringBuffer.size() < newSize) {
-      ringBuffer.push_front(minLUFS);
-    }
-  }
-
-  void paint(Graphics &g) override {
-    g.fillAll(backgroundColor);
-    int columnHeight = getHeight();
-    int i = 0;
-    for (auto it = ringBuffer.begin(); it != ringBuffer.end(); it++, i++) {
-      auto lufs = *it;
-      double r = clip((lufs - minLUFS) / (maxLUFS - minLUFS), 0.0, 1.0);
-      g.setColour(foregroundColor);
-      g.fillRect(columnWidth * i, int(columnHeight * (1 - r)), columnWidth, columnHeight);
-    }
-  }
-
-  void addValue(double value) {
-    ringBuffer.push_back(value);
-    ringBuffer.pop_front();
-  }
-
-  double maxLUFS = 10, minLUFS = -50;
-  int columnWidth = 1;
-  Colour backgroundColor = Colour(0), foregroundColor = Colour(0xff4488ccu);
-  std::list<double> ringBuffer = std::list<double>(50, minLUFS);
-};
+#include "Graph.h"
 
 class MainComponent : public juce::AudioProcessorEditor {
  public:
@@ -60,9 +14,11 @@ class MainComponent : public juce::AudioProcessorEditor {
   ~MainComponent() override;
 
   void onUpdateTimer() {
-    auto lufs = p.getLUFS();
+    auto lufs = p.getLUFSMomentary();
     std::stringstream ss;
-    ss << "LUFS " << std::setprecision(3) << lufs << "dB";
+    ss << "LUFS Momentary " << std::setprecision(3) << p.getLUFSMomentary() << "dB" << std::endl
+       << "LUFS Short Time " << std::setprecision(3) << p.getLUFSShortTime() << "dB" << std::endl
+       << "LUFS Long Time " << std::setprecision(3) << p.getLUFSLongTerm() << "dB" << std::endl;
     label.setText(ss.str(), dontSendNotification);
     graph.addValue(lufs);
   }

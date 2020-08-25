@@ -24,7 +24,7 @@ MainComponent::MainComponent(MainAudioProcessor& p)
     Desktop::getInstance().setGlobalScaleFactor(1);
   }
   setResizable(true, true);
-  setSize(400, 400);
+  setSize(480, 480);
   setResizeLimits(300, 300, std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
 
   addAndMakeVisible(graph);
@@ -32,7 +32,7 @@ MainComponent::MainComponent(MainAudioProcessor& p)
 
   addAndMakeVisible(label);
   label.setBounds(getLocalBounds());
-  label.setFont(Font(64, Font::bold));
+  label.setFont(Font(32));
 
   timer = std::make_unique<MainTimer>(this);
   timer->startTimer(1000/60);
