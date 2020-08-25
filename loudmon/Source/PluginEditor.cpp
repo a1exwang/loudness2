@@ -6,7 +6,7 @@
 
 class MainTimer :public juce::Timer {
  public:
-  MainTimer(MainComponent *main) :main(main) {}
+  explicit MainTimer(MainComponent *main) :main(main) {}
 
   void timerCallback() override {
     main->onUpdateTimer();
@@ -28,11 +28,11 @@ MainComponent::MainComponent(MainAudioProcessor& p)
   setResizeLimits(300, 300, std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
 
   addAndMakeVisible(graph);
-  graph.setBounds(getLocalBounds());
 
   addAndMakeVisible(label);
-  label.setBounds(getLocalBounds());
   label.setFont(Font(32));
+
+  setMyBounds();
 
   timer = std::make_unique<MainTimer>(this);
   timer->startTimer(1000/60);

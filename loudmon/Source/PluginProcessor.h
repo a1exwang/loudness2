@@ -6,7 +6,7 @@
 
 class LUFSMeter {
  public:
-  LUFSMeter(double measurementSeconds = 0.4, double strideSeconds = 0.1)
+  explicit LUFSMeter(double measurementSeconds = 0.4, double strideSeconds = 0.1)
       :measurementSeconds(measurementSeconds), strideSeconds(strideSeconds) { }
   void prepareToPlay(double sampleRate, uint32_t maximumBlockSize, uint32_t numChannels);
 
@@ -21,10 +21,10 @@ class LUFSMeter {
   }
  private:
   double measurementSeconds, strideSeconds;
-  int strideSize;
-  int measurementSize;
-  size_t globalOffset;
-  std::atomic<double> lufs_;
+  int strideSize = 1;
+  int measurementSize = 1;
+  size_t globalOffset = 0;
+  std::atomic<double> lufs_ = 0;
 
   SecondOrderIIRFilter prefilter = SecondOrderIIRFilter(
       1.53512485958697,

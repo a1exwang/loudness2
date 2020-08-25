@@ -24,8 +24,13 @@ class MainComponent : public juce::AudioProcessorEditor {
     graph.addValue(now, lufs, p.getSampleRate());
   }
   void resized() override {
-    graph.setBounds(getLocalBounds());
-    label.setBounds(getLocalBounds());
+    setMyBounds();
+  }
+
+  void setMyBounds() {
+    auto area = getLocalBounds();
+    label.setBounds(area.removeFromLeft(200));
+    graph.setBounds(area);
   }
  protected:
 

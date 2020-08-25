@@ -65,4 +65,5 @@ void Graph::addValue(std::chrono::high_resolution_clock::time_point time, double
     ringBuffer.pop_front();
   }
   this->sampleRate = sampleRate;
+  repaint();
 }
