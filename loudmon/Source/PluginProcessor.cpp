@@ -65,7 +65,8 @@ void MainAudioProcessor::changeProgramName (int, const String&) { }
 void MainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock) {
   lufsMomentary.prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
   lufsShortTime.prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
-  lufsLongTerm.prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+  lufsLongTime.prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+  maxValue = 0;
 }
 
 void MainAudioProcessor::releaseResources()
@@ -99,6 +100,10 @@ bool MainAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 #endif
 
 void MainAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages) {
+  if (toReset.load()) {
+    resetData();
+  }
+
   {
     AudioBuffer<float> bufferCopy = buffer;
     lufsMomentary.processBlock(bufferCopy);
@@ -109,8 +114,20 @@ void MainAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& mi
   }
   {
     AudioBuffer<float> bufferCopy = buffer;
-    lufsLongTerm.processBlock(bufferCopy);
+    lufsLongTime.processBlock(bufferCopy);
   }
+
+  // calculate true max
+  auto localMaxValue = maxValue.load();
+  for (int channel = 0; channel < buffer.getNumChannels(); channel++) {
+    for (int i = 0; i < buffer.getNumSamples(); i++) {
+      auto value = abs(buffer.getSample(channel, i));
+      if (value > localMaxValue) {
+        localMaxValue = value;
+      }
+    }
+  }
+  maxValue.store(localMaxValue);
 
   // FIXME: disable output currently for debug
   buffer.clear();
@@ -149,7 +166,9 @@ void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
     // global first
     newMeasurementStart = 0;
   } else {
-    assert(strideSize > std::get<0>(semiResults.back()));
+    if (strideSize < std::get<0>(semiResults.back())) {
+      assert(strideSize >= std::get<0>(semiResults.back()));
+    }
     newMeasurementStart = strideSize - std::get<0>(semiResults.back());
   }
   for (auto &sr : semiResults) {
@@ -158,9 +177,11 @@ void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
 
     for (int i = 0; ; i++) {
       if (lastCount + i >= measurementSize) {
-        yieldLUFS(sums, i + globalOffset);
+        yieldLUFS(sums, globalOffset + i);
         break;
       } else if (i >= n) {
+        assert(i == n);
+        assert(i < strideSize);
         semiResultsNew.emplace_back(lastCount + n, sums);
         break;
       } else {
@@ -177,7 +198,7 @@ void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
     for (int i = 0; ; i++) {
       if (i >= measurementSize) {
         // done
-        yieldLUFS(sums, i + offset);
+        yieldLUFS(sums, globalOffset + i + offset);
         break;
       } else if (offset + i >= n) {
         // semi
@@ -209,4 +230,5 @@ void LUFSMeter::prepareToPlay(double sampleRate, uint32_t maximumBlockSize, uint
   strideSize = static_cast<int>(strideSeconds * sampleRate);
   globalOffset = 0;
   semiResults.clear();
+  lufs_ = -std::numeric_limits<float>::infinity();
 }

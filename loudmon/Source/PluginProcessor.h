@@ -8,6 +8,7 @@ class LUFSMeter {
  public:
   explicit LUFSMeter(double measurementSeconds = 0.4, double strideSeconds = 0.1)
       :measurementSeconds(measurementSeconds), strideSeconds(strideSeconds) { }
+
   void prepareToPlay(double sampleRate, uint32_t maximumBlockSize, uint32_t numChannels);
 
   std::vector<std::tuple<size_t, std::vector<double>>> semiResults;
@@ -84,14 +85,33 @@ class MainAudioProcessor  : public AudioProcessor {
     return lufsShortTime.getLUFS();
   }
 
-  double getLUFSLongTerm() const {
-    return lufsLongTerm.getLUFS();
+  double getLUFSLongTime() const {
+    return lufsLongTime.getLUFS();
+  }
+
+  float getMaxValue() const {
+    return maxValue;
+  }
+
+  void enqueueReset() {
+    toReset.store(true);
   }
 
  private:
+  void resetData() {
+    maxValue.store(0);
+    toReset.store(false);
+    lufsMomentary.prepareToPlay(getSampleRate(), getBlockSize(), getTotalNumOutputChannels());
+    lufsShortTime.prepareToPlay(getSampleRate(), getBlockSize(), getTotalNumOutputChannels());
+    lufsLongTime.prepareToPlay(getSampleRate(), getBlockSize(), getTotalNumOutputChannels());
+  }
+
+ private:
+  std::atomic<float> maxValue = 0;
+  std::atomic<bool> toReset = false;
   LUFSMeter lufsMomentary = LUFSMeter(0.4, 0.1);
   LUFSMeter lufsShortTime = LUFSMeter(2, 0.5);
-  LUFSMeter lufsLongTerm = LUFSMeter(10, 2.5);
+  LUFSMeter lufsLongTime = LUFSMeter(10, 2.5);
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainAudioProcessor)
 };
