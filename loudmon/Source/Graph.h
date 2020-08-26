@@ -38,7 +38,7 @@ class Graph : public juce::Component {
   using TP = std::chrono::high_resolution_clock::time_point;
   Colour backgroundColor = Colour(0);
   Colour graphColour = Colour::fromHSV(0.3f, 0.7f, 0.52f, 0.5f);
-  float graphLineWidth= 1.5;
-  Colour lineColour = Colour::fromHSV(0, 0, 0.7f, 1);
+  float graphLineWidth = 2;
+  Colour lineColour = Colour::fromHSV(0.3, 0.9, 0.1f, 0.7f);
   std::list<std::tuple<TP, double>> ringBuffer;
 };

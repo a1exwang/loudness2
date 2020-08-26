@@ -51,13 +51,6 @@ void Graph::paint(Graphics &g) {
     g.drawLine(xMin, y, xMax, y);
   }
 
-  // draw edge grid
-  g.setColour(coordinateColour);
-  g.drawLine(xMin, yMin, xMin, yMax);
-  g.drawLine(xMax, yMin, xMax, yMax);
-  g.drawLine(xMin, yMin, xMax, yMin);
-  g.drawLine(xMin, yMax, xMax, yMax);
-
   // draw the loudness graph
   auto graphArea = Path();
   g.setColour(lineColour);
@@ -86,6 +79,14 @@ void Graph::paint(Graphics &g) {
   fillType.setColour(graphColour);
   g.setFillType(fillType);
   g.fillPath(graphArea);
+
+
+  // draw edge grid. edge grid should be on top of the graph
+  g.setColour(coordinateColour);
+  g.drawLine(xMin, yMin, xMin, yMax);
+  g.drawLine(xMax, yMin, xMax, yMax);
+  g.drawLine(xMin, yMin, xMax, yMin);
+  g.drawLine(xMin, yMax, xMax, yMax);
 }
 
 void Graph::resized() {}

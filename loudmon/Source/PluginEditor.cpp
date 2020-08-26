@@ -97,22 +97,22 @@ void MainComponent::onUpdateTimer() {
   auto now = std::chrono::high_resolution_clock::now();
   {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << std::setfill('0') << p.getLUFSMomentary() << "dB" << std::endl;
+    ss << std::fixed << std::setprecision(1) << std::setfill('0') << p.getLUFSMomentary();
     momentaryValueLabel.setText(ss.str(), dontSendNotification);
   }
   {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << std::setfill('0') << p.getLUFSShortTime() << "dB" << std::endl;
+    ss << std::fixed << std::setprecision(1) << std::setfill('0') << p.getLUFSShortTime();
     shortTimeValueLabel.setText(ss.str(), dontSendNotification);
   }
   {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << std::setfill('0') << p.getLUFSLongTime() << "dB" << std::endl;
+    ss << std::fixed << std::setprecision(1) << std::setfill('0') << p.getLUFSLongTime();
     longTimeValueLabel.setText(ss.str(), dontSendNotification);
   }
   {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << std::setfill('0') << (10*log10f(p.getMaxValue())) << "dB" << std::endl;
+    ss << std::fixed << std::setprecision(1) << std::setfill('0') << (10 * log10f(p.getMaxValue()));
     trueMaxValueLabel.setText(ss.str(), dontSendNotification);
   }
   graph.addValue(now, lufs, p.getSampleRate());
