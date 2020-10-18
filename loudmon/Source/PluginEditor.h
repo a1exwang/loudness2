@@ -18,6 +18,18 @@ class MainComponent : public juce::AudioProcessorEditor {
     setMyBounds();
   }
 
+  void toggleGraph() {
+    showGraph = !showGraph;
+    graph.setVisible(showGraph);
+    if (showGraph) {
+      setSize(minimumWidth + defaultGraphWidth, minimumHeight);
+    } else {
+      setSize(minimumWidth, minimumHeight);
+    }
+    setMyBounds();
+    repaint();
+  }
+
   void setMyBounds();
 
   void paint(Graphics &g) override {
@@ -33,23 +45,27 @@ class MainComponent : public juce::AudioProcessorEditor {
       lastFPSTime = now;
       frameCount = 0;
     }
-
   }
  protected:
   // styles
   float controlAreaHeight = 50;
-  float buttonResetWidth = 60;
-  float buttonResetPadHeight = 6;
-  float buttonResetPadWidth = 3;
+  float buttonWidth = 60;
+  float buttonPadHeight = 6;
+  float buttonPadWidth = 3;
 
+  float titleAreaHeight = 24;
+  float fpsAreaWidth = 30;
   float labelAreaWidth = 120;
   float labelTextHeight = 14;
   float labelIntervalHeight = 8;
-  float labelAreaPadHeight = 30 + 60;
+  float labelAreaPadHeight = 12;
   float labelValueIntervalHeight = 2;
   float valueTextHeight = 32;
   float labelAreaLabelHeight = labelTextHeight + 2;
   float labelAreaValueHeight = valueTextHeight + 4;
+  float minimumWidth = labelAreaWidth;
+  float minimumHeight = 360;
+  float defaultGraphWidth = 300;
   Colour momentaryTextColour = Colour::fromHSV(0.3f, 0.7f, 0.52f, 1);
   Colour shortTimeTextColour = Colour::fromHSV(0.3f, 0.7f, 0.52f, 1);
   Colour longTimeTextColour = Colour::fromHSV(0.3f, 0.7f, 0.52f, 1);
@@ -60,7 +76,12 @@ class MainComponent : public juce::AudioProcessorEditor {
   size_t frameCount = 0;
   double fps = 0;
 
+  bool showGraph = false;
+
+  Label titleLabel;
+
   TextButton buttonReset;
+  TextButton buttonToggleGraph;
 
   Label labelFPS;
 

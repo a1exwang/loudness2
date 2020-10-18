@@ -24,10 +24,18 @@ MainComponent::MainComponent(MainAudioProcessor& p)
     Desktop::getInstance().setGlobalScaleFactor(1);
   }
   setResizable(true, true);
-  setSize(480, 480);
-  setResizeLimits(300, 300, std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
+  if (showGraph) {
+    setSize(minimumWidth + defaultGraphWidth, minimumHeight);
+  } else {
+    setSize(minimumWidth, minimumHeight);
+  }
+  setResizeLimits(minimumWidth, minimumHeight, std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
 
-  addAndMakeVisible(graph);
+  titleLabel.setText("a1ex's LM", dontSendNotification);
+  addAndMakeVisible(titleLabel);
+
+  addChildComponent(graph);
+  graph.setVisible(showGraph);
 
   addAndMakeVisible(buttonReset);
   buttonReset.setButtonText("Reset");
@@ -35,6 +43,12 @@ MainComponent::MainComponent(MainAudioProcessor& p)
     this->p.enqueueReset();
     this->graph.reset();
     this->repaint();
+  };
+
+  addAndMakeVisible(buttonToggleGraph);
+  buttonToggleGraph.setButtonText("Toggle Graph");
+  buttonToggleGraph.onClick = [this]() {
+    this->toggleGraph();
   };
 
   addAndMakeVisible(labelFPS, 0);
@@ -120,18 +134,45 @@ void MainComponent::onUpdateTimer() {
   labelFPS.setText(std::to_string(static_cast<int>(fps)), dontSendNotification);
 }
 
-void MainComponent::setMyBounds() {
-  labelFPS.setBounds(getLocalBounds());
+template <typename T>
+Rectangle<T> pad(Rectangle<T> rect, T size) {
+  rect.removeFromTop(size);
+  rect.removeFromBottom(size);
+  rect.removeFromLeft(size);
+  rect.removeFromRight(size);
+  return rect;
+}
 
+template <typename T>
+Rectangle<T> padVertical(Rectangle<T> rect, T size) {
+  rect.removeFromTop(size);
+  rect.removeFromBottom(size);
+  return rect;
+}
+
+template <typename T>
+Rectangle<T> padHorizontal(Rectangle<T> rect, T size) {
+  rect.removeFromLeft(size);
+  rect.removeFromRight(size);
+  return rect;
+}
+
+
+void MainComponent::setMyBounds() {
   auto area = getLocalBounds();
 
+  auto titleRowArea = area.removeFromTop(titleAreaHeight);
+  auto fpsArea = titleRowArea.removeFromRight(fpsAreaWidth);
+  titleLabel.setBounds(titleRowArea);
+  labelFPS.setBounds(fpsArea);
+
   auto controlArea = area.removeFromTop(controlAreaHeight);
-  auto buttonResetArea = controlArea.removeFromLeft(buttonResetWidth);
-  buttonResetArea.removeFromTop(buttonResetPadHeight);
-  buttonResetArea.removeFromBottom(buttonResetPadHeight);
-  buttonResetArea.removeFromLeft(buttonResetPadWidth);
-  buttonResetArea.removeFromRight(buttonResetPadWidth);
-  buttonReset.setBounds(buttonResetArea);
+
+  auto buttonResetArea = controlArea.removeFromLeft(buttonWidth);
+  buttonReset.setBounds(padVertical<int>(padHorizontal<int>(buttonResetArea, buttonPadWidth), buttonPadHeight));
+
+  auto buttonToggleGraphArea = controlArea.removeFromLeft(buttonWidth);
+  buttonToggleGraph.setBounds(padVertical<int>(padHorizontal<int>(buttonToggleGraphArea, buttonPadWidth), buttonPadHeight));
 
   auto labelArea = area.removeFromLeft(labelAreaWidth);
   labelArea.removeFromTop(labelAreaPadHeight);
@@ -155,6 +196,8 @@ void MainComponent::setMyBounds() {
   trueMaxValueLabel.setBounds(labelArea.removeFromTop(labelAreaValueHeight));
   labelArea.removeFromTop(labelIntervalHeight);
 
-  graph.setBounds(area);
+  if (showGraph) {
+    graph.setBounds(area);
+  }
 }
 
