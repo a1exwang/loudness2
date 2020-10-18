@@ -35,6 +35,8 @@ class MainComponent : public juce::AudioProcessorEditor {
   void paint(Graphics &g) override {
     AudioProcessorEditor::paint(g);
 
+	g.fillAll(Colour::fromRGB(63, 73, 77));
+
     frameCount++;
     auto now = std::chrono::high_resolution_clock::now();
     if (now - lastFPSTime > maxFPSInterval) {

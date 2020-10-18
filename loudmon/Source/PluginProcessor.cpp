@@ -104,16 +104,23 @@ void MainAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& mi
     resetData();
   }
 
+  AudioBuffer<float> bufferCopy(buffer.getNumChannels(), buffer.getNumSamples());
   {
-    AudioBuffer<float> bufferCopy = buffer;
+    for (int c = 0; c < buffer.getNumChannels(); c++) {
+	  bufferCopy.copyFrom(c, 0, buffer, c, 0, buffer.getNumSamples());
+    }
     lufsMomentary.processBlock(bufferCopy);
   }
   {
-    AudioBuffer<float> bufferCopy = buffer;
+    for (int c = 0; c < buffer.getNumChannels(); c++) {
+	  bufferCopy.copyFrom(c, 0, buffer, c, 0, buffer.getNumSamples());
+    }
     lufsShortTime.processBlock(bufferCopy);
   }
   {
-    AudioBuffer<float> bufferCopy = buffer;
+    for (int c = 0; c < buffer.getNumChannels(); c++) {
+	  bufferCopy.copyFrom(c, 0, buffer, c, 0, buffer.getNumSamples());
+    }
     lufsLongTime.processBlock(bufferCopy);
   }
 
@@ -187,7 +194,7 @@ void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
       } else {
         for (int c = 0; c < buffer.getNumChannels(); c++) {
           auto value = buffer.getSample(c, i);
-          sums[c] = value * value;
+          sums[c] += value * value;
         }
       }
     }
@@ -216,7 +223,15 @@ void LUFSMeter::processBlock(AudioBuffer<float> &buffer) {
   globalOffset += buffer.getNumSamples();
 }
 void LUFSMeter::yieldLUFS(const std::vector<double> &sums, size_t offset) {
-  double lufs = -0.691 + 10 * log10(std::accumulate(sums.begin(), sums.end(), 0.0));
+  double lufs = -std::numeric_limits<double>::infinity();
+  if (sums.size() > 0) {
+    double average = std::accumulate(sums.begin(), sums.end(), 0.0) / measurementSize;
+    // divided by 2 to do sqrt
+    lufs = -0.691 + 10 * log10(average);
+  }
+  std::stringstream ss;
+  ss<< "LUFS " << lufs;
+  DBG(ss.str());
   lufs_ = lufs;
 }
 void LUFSMeter::prepareToPlay(double sampleRate, uint32_t maximumBlockSize, uint32_t numChannels) {
