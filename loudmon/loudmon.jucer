@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="dq01xz" name="loudmon" projectType="audioplug" jucerVersion="6.0.1"
-              headerPath="../vst2sdk/" pluginFormats="buildAU,buildStandalone,buildVST,buildVST3"
-              cppLanguageStandard="17">
+<JUCERPROJECT id="dq01xz" name="loudmon" projectType="audioplug" headerPath="../vst2sdk/"
+              pluginFormats="buildAU,buildStandalone,buildVST,buildVST3" cppLanguageStandard="17"
+              jucerFormatVersion="1">
   <MAINGROUP id="uY6Nur" name="loudness_monitor">
     <GROUP id="{BABD80EF-84CB-D59C-6B7E-F9B098595461}" name="Source">
       <FILE id="fLGyEz" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -14,12 +14,13 @@
       <FILE id="Mmr7AB" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="Mmr7AD" name="BackgroundProcessor.cpp" compile="1" resource="0"
             file="Source/BackgroundProcessor.cpp"/>
-      <FILE id="Mmr7AC" name="BackgroundProcessor.h" compile="0" resource="0" file="Source/BackgroundProcessor.h"/>
+      <FILE id="Mmr7AC" name="BackgroundProcessor.h" compile="0" resource="0"
+            file="Source/BackgroundProcessor.h"/>
       <FILE id="Mmr7AE" name="SecondOrderIIRFilter.cpp" compile="1" resource="0"
             file="Source/SecondOrderIIRFilter.cpp"/>
-      <FILE id="Mmr7AF" name="SecondOrderIIRFilter.h" compile="0" resource="0" file="Source/SecondOrderIIRFilter.h"/>
-      <FILE id="Mmr7AF" name="Graph.cpp" compile="1" resource="0"
-            file="Source/Graph.cpp"/>
+      <FILE id="Mmr7AF" name="SecondOrderIIRFilter.h" compile="0" resource="0"
+            file="Source/SecondOrderIIRFilter.h"/>
+      <FILE id="Mmr7AF" name="Graph.cpp" compile="1" resource="0" file="Source/Graph.cpp"/>
       <FILE id="Mmr7AG" name="Graph.h" compile="0" resource="0" file="Source/Graph.h"/>
     </GROUP>
   </MAINGROUP>
